@@ -68,8 +68,7 @@ function runDB() {
                 case 'Update employee roles':
                     return employeeRoleUpdate();
 
-
-                //uses SET
+                //uses SET okayyyyyy???? I can't even right now.
             }
         });
 }
@@ -80,7 +79,7 @@ function departmentAdd() {
         type: 'input',
         message: 'Add a department:'
     }).then(function (answer) {
-        let query = connection.query(
+        connection.query(
             "INSERT INTO department SET ?",
             {
                 name: answer.department
@@ -129,14 +128,14 @@ function roleAdd() {
 
         }]).then(function (answer) {
             console.log(answer)
-            let query = connection.query(
+            connection.query(
                 "INSERT INTO role SET ?",
                 {
                     title: answer.role, salary: answer.salary, department_id: answer.department
                 },
-                function (err) {
+                function (err, res) {
                     if (err) throw err
-                    //console.table(res);
+                    console.log("role added");
                     runDB();
                 }
             )
@@ -153,20 +152,8 @@ function employeeAdd() {
                 roles.push(results[i])
             }
             console.log(roles)
-            //tutor helped with this bit
-            var roleLists = roles.map(({ id, name }) => ({
-                name: name,
-                value: id
-            }))
-            var departments = []
-            for (let i = 0; i < results.length; i++) {
-
-                departments.push(results[i])
-            }
-            console.log(departments)
-            //tutor helped with this bit
-            var departmentLists = departments.map(({ id, name }) => ({
-                name: name,
+            var roleLists = roles.map(({ id, title }) => ({
+                name: title,
                 value: id
             }))
             inquirer.prompt([
@@ -186,21 +173,16 @@ function employeeAdd() {
                     message: "What role will this person have?",
                     choices: roleLists
                 }
-                // {
-                //     name: 'department',
-                //     type: 'list',
-                //     message: "Which department are they in?",
-                //     choices: departmentLists
-                // }
+
             ]).then(function (answer) {
-                let query = connection.query(
+                connection.query(
                     "INSERT INTO employee SET? ",
                     {
                         first_name: answer.firstname, last_name: answer.lastname, role_id: answer.role
                     },
-                    function (err) {
+                    function (err, res) {
                         if (err) throw err
-                        //console.table(res);
+                        console.table(res);
                         runDB();
 
                     })
@@ -209,3 +191,111 @@ function employeeAdd() {
 
         })
 };
+
+function departmentView() {
+    connection.query("SELECT * FROM department",
+        function (err, res) {
+            if (err) throw err;
+            console.table(res);
+            runDB()
+        })
+};
+
+function roleView() {
+    connection.query("SELECT * FROM role",
+        function (err, res) {
+            if (err) throw err;
+            console.table(res);
+            runDB()
+        })
+};
+
+function employeeView() {
+    connection.query("SELECT * FROM employee",
+        function (err, res) {
+            if (err) throw err;
+            console.table(res);
+            runDB()
+        })
+};
+
+function employeeRoleUpdate() {
+    connection.query("SELECT * FROM employee", (err, res) => {
+        if (err) throw err;
+        var employees = []
+            for (let i = 0; i < res.length; i++) {
+                employees.push(res[i])
+            }
+            console.log(employees)
+            var employeeLists = employees.map(({ id, first_name, last_name }) => ({
+                name: `${last_name}, ${first_name}`, 
+                value: id
+            }))
+        inquirer.prompt([
+            {
+                name: "employeeRoleUpdate",
+                type: "list",
+                message: "Which employee role would you like to update?",
+                choices: employeeLists
+            }
+        ])
+        .then(function (answer) {
+        //need to grab choice 
+        console.log(answer.employeeRoleUpdate)
+        connection.query("SELECT * FROM role", (err, res) => {
+            if (err) throw err;
+            var roles = []
+            for (let i = 0; i < res.length; i++) {
+                roles.push(res[i])
+            }
+            console.log(roles)
+            var roleLists = roles.map(({ id, title }) => ({
+                name: title,
+                value: id
+            }))
+        
+            //store employee id as var
+            //store role id picked as var
+            inquirer.prompt([
+                {
+                    name: "roleSelect",
+                    type: "list",
+                    message: "Which new role would you like to assign this employee?",
+                    choices: roleLists
+                }
+                //need to grab choice 
+            ])
+        })
+            // connection.query(
+            //     "UPDATE employee SET ? WHERE ?",
+            //     [
+            //         {
+
+            //         }
+            //     ]
+            // )
+        })
+    })
+};
+    //connection.query get all emplyees 
+    //map for employees
+    //list employees
+    //which emplyee do you wnat to update 
+    //use response from first query to generate choices in inquirer as to which employee to update
+    //then query for all the roles and use that to update what the new role will be
+
+
+    // connection.query(
+    //     "UPDATE role SET ? WHERE ?",
+
+    //     {
+    //         title: answer.role, salary: answer.salary, department_id: answer.department
+    //     },
+    //     function (err, res) {
+    //         if (err) throw err
+    //         console.log("role added");
+    //         runDB();
+    //     }
+    // )
+
+    //need to get name, salary, 
